@@ -13,7 +13,9 @@
     <!-- DESCRIPTION OBLIGATOIRE DE L'ARTIFACT-->
     <!-- Le groupeid et la version sont hérité du parent -->
     <artifactId>icasa.light.user.command</artifactId>
-
+	
+	<packaging>bundle</packaging>
+	
     <dependencies>
         <!--iPOJO dep -->
         <dependency>
