@@ -3,6 +3,7 @@ package org.example.follow.me.manager;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
+import org.apache.felix.ipojo.annotations.Requires;
 import org.example.follow.me.api.FollowMeAdministration;
 import org.example.follow.me.api.FollowMeConfiguration;
 import org.example.follow.me.api.IlluminanceGoal;
@@ -18,6 +19,7 @@ import org.example.follow.me.api.IlluminanceGoal;
 public class LightFollowMeManagerImpl implements FollowMeAdministration {
 
 	/** Field for followMeManager dependency */
+	@Requires
 	private FollowMeConfiguration followMeManager;
 	
 	
