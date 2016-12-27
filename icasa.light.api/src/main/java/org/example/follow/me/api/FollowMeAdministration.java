@@ -20,5 +20,18 @@ public interface FollowMeAdministration {
      * @return the new illuminance preference
      */
     public IlluminanceGoal getIlluminancePreference();
+    
+    /**
+     * Configure the energy saving goal.
+     * @param energyGoal : the targeted energy goal.
+     */
+    public void setEnergySavingGoal(EnergyGoal energyGoal);
+ 
+    /**
+     * Gets the current energy goal.
+     * 
+     * @return the current energy goal.
+     */
+    public EnergyGoal getEnergyGoal();
 
 }

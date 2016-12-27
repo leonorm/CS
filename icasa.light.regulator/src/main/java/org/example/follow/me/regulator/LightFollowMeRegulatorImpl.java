@@ -1,11 +1,8 @@
 package org.example.follow.me.regulator;
 
-
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 
 import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
@@ -25,25 +22,30 @@ import org.example.follow.me.api.FollowMeConfiguration;
 
 @Component
 @Instantiate(name = "light.follow.me.regulator")
-@Provides(specifications={FollowMeConfiguration.class})
+@Provides(specifications = { FollowMeConfiguration.class })
 @SuppressWarnings("rawtypes")
 /**
  * Created by aygalinc on 28/10/16.
  */
-public class LightFollowMeRegulatorImpl implements DeviceListener, FollowMeConfiguration{
+public class LightFollowMeRegulatorImpl implements DeviceListener, FollowMeConfiguration {
 
 	/**
 	 * The maximum number of lights to turn on when a user enters the room :
 	 **/
 	private int maxLightsToTurnOnPerRoom = 2;
 
-	@Requires(id="presenceSensors", optional=true)
+	/**
+	 * The maximum energy consumption allowed in a room in Watt:
+	 **/
+	private double maximumEnergyConsumptionAllowedInARoom = 300.0d;
+
+	@Requires(id = "presenceSensors", optional = true)
 	/** Field for presenceSensors dependency */
 	private PresenceSensor[] presenceSensors;
-	@Requires(id="binaryLights", optional=true)
+	@Requires(id = "binaryLights", optional = true)
 	/** Field for binaryLights dependency */
 	private BinaryLight[] binaryLights;
-	@Requires(id="dimmerLights", optional=true)
+	@Requires(id = "dimmerLights", optional = true)
 	/** Field for dimmerLights dependency */
 	private DimmerLight[] dimmerLights;
 
@@ -58,37 +60,42 @@ public class LightFollowMeRegulatorImpl implements DeviceListener, FollowMeConfi
 	public static final String LOCATION_UNKNOWN = "unknown";
 
 	/*------------------------------BINDING METHODS--------------------------*/
-	@Bind(id="binaryLights")
+	@Bind(id = "binaryLights")
 	/** Bind Method for binaryLights dependency */
 	public synchronized void bindBinaryLight(BinaryLight binaryLight, Map properties) {
 		System.out.println("bind binary light " + binaryLight.getSerialNumber());
 		binaryLight.addListener(this);
 	}
-	@Unbind(id="binaryLights")
+
+	@Unbind(id = "binaryLights")
 	/** Unbind Method for binaryLights dependency */
 	public synchronized void unbindBinaryLight(BinaryLight binaryLight, Map properties) {
 		System.out.println("unbind binary light " + binaryLight.getSerialNumber());
 		binaryLight.removeListener(this);
 	}
-	@Bind(id="presenceSensors")
+
+	@Bind(id = "presenceSensors")
 	/** Bind Method for presenceSensors dependency */
 	public synchronized void bindPresenceSensor(PresenceSensor presenceSensor, Map properties) {
 		System.out.println("bind presence sensor " + presenceSensor.getSerialNumber());
 		presenceSensor.addListener(this);
 	}
-	@Unbind(id="presenceSensors")
+
+	@Unbind(id = "presenceSensors")
 	/** Unbind Method for presenceSensors dependency */
 	public synchronized void unbindPresenceSensor(PresenceSensor presenceSensor, Map properties) {
 		System.out.println("Unbind presence sensor " + presenceSensor.getSerialNumber());
 		presenceSensor.removeListener(this);
 	}
-	@Bind(id="dimmerLights")
+
+	@Bind(id = "dimmerLights")
 	/** Bind Method for dimmerLights dependency */
 	public void bindDimmerLight(DimmerLight dimmerLight, Map properties) {
 		System.out.println("bind dimmer light" + dimmerLight.getSerialNumber());
 		dimmerLight.addListener(this);
 	}
-	@Unbind(id="dimmerLights")
+
+	@Unbind(id = "dimmerLights")
 	/** Unbind Method for dimmerLights dependency */
 	public void unbindDimmerLight(DimmerLight dimmerLight, Map properties) {
 		System.out.println("Unbind dimmer light " + dimmerLight.getSerialNumber());
@@ -130,7 +137,7 @@ public class LightFollowMeRegulatorImpl implements DeviceListener, FollowMeConfi
 	@Override
 	public void devicePropertyRemoved(GenericDevice arg0, String arg1) {
 	}
-	
+
 	@Override
 	public void deviceRemoved(GenericDevice arg0) {
 	}
@@ -166,7 +173,7 @@ public class LightFollowMeRegulatorImpl implements DeviceListener, FollowMeConfi
 						.equals(PresenceSensor.LOCATION_UNKNOWN)) {
 					if (changingSensor.getSensedPresence())
 						setStateLights((String) changingSensor.getPropertyValue(LOCATION_PROPERTY_NAME),
-								maxLightsToTurnOnPerRoom);
+								getNumberOfLampsTolightened());
 					else
 						setStateLights((String) changingSensor.getPropertyValue(LOCATION_PROPERTY_NAME), 0);
 				}
@@ -183,7 +190,7 @@ public class LightFollowMeRegulatorImpl implements DeviceListener, FollowMeConfi
 					/* if a presence is sensed */
 					if (changingSensor.getSensedPresence())
 						setStateLights((String) changingSensor.getPropertyValue(LOCATION_PROPERTY_NAME),
-								maxLightsToTurnOnPerRoom);
+								getNumberOfLampsTolightened());
 					else
 						setStateLights((String) changingSensor.getPropertyValue(LOCATION_PROPERTY_NAME), 0);
 				}
@@ -217,7 +224,7 @@ public class LightFollowMeRegulatorImpl implements DeviceListener, FollowMeConfi
 					/* If there is a presence sensed */
 					if (isThereAPresenceSensed(
 							getDeviceFromLocation((String) oldValue, presenceSensors, PresenceSensor.class)))
-						setStateLights((String) oldValue, maxLightsToTurnOnPerRoom);
+						setStateLights((String) oldValue, getNumberOfLampsTolightened());
 					else
 						setStateLights((String) oldValue, 0);
 				}
@@ -228,7 +235,7 @@ public class LightFollowMeRegulatorImpl implements DeviceListener, FollowMeConfi
 					/* If there is a presence sensed */
 					if (isThereAPresenceSensed(
 							getDeviceFromLocation((String) oldValue, presenceSensors, PresenceSensor.class)))
-						setStateLights((String) oldValue, maxLightsToTurnOnPerRoom);
+						setStateLights((String) oldValue, getNumberOfLampsTolightened());
 					else
 						setStateLights((String) oldValue, 0);
 
@@ -236,7 +243,7 @@ public class LightFollowMeRegulatorImpl implements DeviceListener, FollowMeConfi
 					/* If there is a presence sensed */
 					if (isThereAPresenceSensed(
 							getDeviceFromLocation((String) newValue, presenceSensors, PresenceSensor.class)))
-						setStateLights((String) newValue, maxLightsToTurnOnPerRoom);
+						setStateLights((String) newValue, getNumberOfLampsTolightened());
 					else
 						setStateLights((String) newValue, 0);
 
@@ -259,7 +266,7 @@ public class LightFollowMeRegulatorImpl implements DeviceListener, FollowMeConfi
 					/* If there is a presence sensed */
 					if (isThereAPresenceSensed(
 							getDeviceFromLocation((String) oldValue, presenceSensors, PresenceSensor.class)))
-						setStateLights((String) oldValue, maxLightsToTurnOnPerRoom);
+						setStateLights((String) oldValue, getNumberOfLampsTolightened());
 					else
 						setStateLights((String) oldValue, 0);
 				}
@@ -270,7 +277,7 @@ public class LightFollowMeRegulatorImpl implements DeviceListener, FollowMeConfi
 					/* If there is a presence sensed */
 					if (isThereAPresenceSensed(
 							getDeviceFromLocation((String) oldValue, presenceSensors, PresenceSensor.class)))
-						setStateLights((String) oldValue, maxLightsToTurnOnPerRoom);
+						setStateLights((String) oldValue, getNumberOfLampsTolightened());
 					else
 						setStateLights((String) oldValue, 0);
 
@@ -278,7 +285,7 @@ public class LightFollowMeRegulatorImpl implements DeviceListener, FollowMeConfi
 					/* If there is a presence sensed */
 					if (isThereAPresenceSensed(
 							getDeviceFromLocation((String) newValue, presenceSensors, PresenceSensor.class)))
-						setStateLights((String) newValue, maxLightsToTurnOnPerRoom);
+						setStateLights((String) newValue, getNumberOfLampsTolightened());
 					else
 						setStateLights((String) newValue, 0);
 
@@ -315,8 +322,8 @@ public class LightFollowMeRegulatorImpl implements DeviceListener, FollowMeConfi
 
 		for (BinaryLight binaryLight : sameLocationLigths) {
 			/*
-			 * switch them on/off depending on the number of lighted lamps
-			 * and their power status
+			 * switch them on/off depending on the number of lighted lamps and
+			 * their power status
 			 */
 			if (numberOfLightedLamps < maxNumberOfLightedLamps) {
 				if (!binaryLight.getPowerStatus()) {
@@ -342,8 +349,8 @@ public class LightFollowMeRegulatorImpl implements DeviceListener, FollowMeConfi
 
 		for (DimmerLight dimmerLight : sameLocationLigths) {
 			/*
-			 * switch them on/off depending on the number of lighted lamps
-			 * and their power status
+			 * switch them on/off depending on the number of lighted lamps and
+			 * their power status
 			 */
 			if (numberOfLightedDimmerLamps < maxNumberOfLightedLamps) {
 				if (dimmerLight.getPowerLevel() == 0.0) {
@@ -375,12 +382,11 @@ public class LightFollowMeRegulatorImpl implements DeviceListener, FollowMeConfi
 	private synchronized int getNumberOfLightedDimmerLamps(List<DimmerLight> listOfDimmerLights) {
 
 		int counter = 0;
-
+		
 		for (DimmerLight dimmerLight : listOfDimmerLights) {
 			if (dimmerLight.getPowerLevel() > 0)
 				counter++;
 		}
-
 		return counter;
 	}
 
@@ -403,28 +409,43 @@ public class LightFollowMeRegulatorImpl implements DeviceListener, FollowMeConfi
 		return deviceLocation;
 	}
 
+	
+	/**
+	 * getNumberOfLampsTolightened()
+	 * 
+	 * @warning we assume that a lamp is only binary and is power consumption is 100W
+	 * 
+	 * @return the number of lamps to lightened in a room
+	 */
+	private int getNumberOfLampsTolightened(){
+		
+		if( (this.maximumEnergyConsumptionAllowedInARoom/100) > this.maxLightsToTurnOnPerRoom)
+			return this.maxLightsToTurnOnPerRoom; 
+		else 
+			return (int) (this.maximumEnergyConsumptionAllowedInARoom/100.0);
+			
+	}
+	
 	/*----------------------------------FollowMe Configuration methods ------*/
 
-	/**
-	 * Gets the maximum number of lights to turn on each time an user is
-	 * entering a room.
-	 * 
-	 * @return the maximum number of lights to turn on
-	 */
 	public int getMaximumNumberOfLightsToTurnOn() {
-		
+
 		return this.maxLightsToTurnOnPerRoom;
 	}
 
-	/**
-	 * Sets the maximum number of lights to turn on each time an user is
-	 * entering a room.
-	 * 
-	 * @param maximumNumberOfLightsToTurnOn
-	 *            the new maximum number of lights to turn on
-	 */
 	public void setMaximumNumberOfLightsToTurnOn(int maximumNumberOfLightsToTurnOn) {
 		this.maxLightsToTurnOnPerRoom = maximumNumberOfLightsToTurnOn;
 	}
+
+	public double getMaximumAllowedEnergyInRoom() {
+		return this.maximumEnergyConsumptionAllowedInARoom;
+	}
+	
+	
+	public void setMaximumAllowedEnergyInRoom(double maximumEnergy){
+		this.maximumEnergyConsumptionAllowedInARoom = maximumEnergy;
+	}
+	
+	
 
 }
