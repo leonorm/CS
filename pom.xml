@@ -53,6 +53,10 @@
         <module>icasa.light.regulator</module>
         <module>icasa.light.manager</module>
         <module>icasa.light.user.command</module>
+	<module>icasa.temperature.api</module>
+	<module>icasa.temperature.regulator</module>
+	<module>icasa.temperature.manager</module>
+	<module>icasa.temperature.user.command</module>
     </modules>
 
     <!-- Définis une configuration et une version par défaut aux différentes dépendances utilisées-->

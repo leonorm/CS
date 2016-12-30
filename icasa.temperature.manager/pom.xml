@@ -12,7 +12,7 @@
 
     <!-- DESCRIPTION OBLIGATOIRE DE L'ARTIFACT-->
     <!-- Le groupeid et la version sont hérité du parent -->
-    <artifactId>icasa.light.manager</artifactId>
+    <artifactId>icasa.temperature.manager</artifactId>
     <packaging>bundle</packaging>
 
     <dependencies>
@@ -34,7 +34,7 @@
 
 		<dependency>
 			<groupId>fr.liglab.adele.icasa.teaching</groupId>
-        	<artifactId>icasa.light.api</artifactId>
+        	<artifactId>icasa.temperature.api</artifactId>
     		<version>${project.version}</version>
 		</dependency>
 		

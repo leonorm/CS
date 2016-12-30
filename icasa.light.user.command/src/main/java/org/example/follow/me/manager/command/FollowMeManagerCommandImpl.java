@@ -15,7 +15,7 @@ import fr.liglab.adele.icasa.command.handler.CommandProvider;
 //Define this class as an implementation of a component :
 @Component
 //Create an instance of the component
-@Instantiate(name = "follow.me.mananger.command")
+@Instantiate(name = "follow.me.command")
 //Use the handler command and declare the command as a command provider. The
 //namespace is used to prevent name collision.
 @CommandProvider(namespace = "followme")
@@ -90,7 +90,7 @@ public class FollowMeManagerCommandImpl {
  
     @Command
     public void getEnergyPreference(){
-        System.out.println("The energy goal is "+ this.m_administrationService.getEnergyGoal()); //...
+        System.out.println("The energy goal is "+ this.m_administrationService.getEnergyGoal()); 
     }
     
 }

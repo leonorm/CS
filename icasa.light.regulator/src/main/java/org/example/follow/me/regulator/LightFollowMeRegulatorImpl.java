@@ -113,6 +113,9 @@ public class LightFollowMeRegulatorImpl implements DeviceListener, FollowMeConfi
 		for (BinaryLight binaryLight : binaryLights) {
 			binaryLight.removeListener(this);
 		}
+		for (DimmerLight dimmerLight : dimmerLights) {
+			dimmerLight.removeListener(this);
+		}
 	}
 
 	/** Component Lifecycle Method */
@@ -308,8 +311,8 @@ public class LightFollowMeRegulatorImpl implements DeviceListener, FollowMeConfi
 	private void setStateLights(String location, int maxNumberOfLightedLamps) {
 
 		int numberOfLightedLamps;
-		numberOfLightedLamps = setStateDimmerLightFromLocation(location, maxNumberOfLightedLamps);
-		setStateBinaryLightFromLocation(location, maxNumberOfLightedLamps - numberOfLightedLamps);
+		numberOfLightedLamps = setStateBinaryLightFromLocation(location, maxNumberOfLightedLamps);
+		setStateDimmerLightFromLocation(location, maxNumberOfLightedLamps - numberOfLightedLamps);
 
 	}
 

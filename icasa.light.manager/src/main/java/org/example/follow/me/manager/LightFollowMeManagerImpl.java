@@ -9,12 +9,8 @@ import org.example.follow.me.api.FollowMeAdministration;
 import org.example.follow.me.api.FollowMeConfiguration;
 import org.example.follow.me.api.IlluminanceGoal;
 
-/**
- * Created by aygalinc on 28/10/16.
- */
-
 @Component
-@Instantiate(name = "light.follow.me.manager")
+@Instantiate(name = "follow.me.manager")
 @Provides(specifications = { FollowMeAdministration.class })
 public class LightFollowMeManagerImpl implements FollowMeAdministration {
 
