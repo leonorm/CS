@@ -63,11 +63,6 @@ public class TemperatureRegulatorImpl implements DeviceListener, PeriodicRunnabl
 	private static final TimeUnit PERIODIC_RUNNABLE_UNIT = TimeUnit.SECONDS;
 
 	/**
-	 * Signal which validates that the periodic runnable period is passed
-	 */
-	private Boolean PERIODIC_RUNNABLE_OK = false;
-
-	/**
 	 * Is there a change of targeted temperature, so from setTargetedTemperature
 	 */
 	private String ANY_CHANGE_ON_TARGETED_TEMPERATURE_OF_LOCATION = null;
@@ -176,8 +171,6 @@ public class TemperatureRegulatorImpl implements DeviceListener, PeriodicRunnabl
 
 		if (device instanceof Thermometer) {
 
-			Thermometer temperatureSensor = (Thermometer) device;
-
 			if (propertyName.equals(Thermometer.LOCATION_PROPERTY_NAME)) {
 
 				refreshTemperatureGoals();
@@ -196,26 +189,7 @@ public class TemperatureRegulatorImpl implements DeviceListener, PeriodicRunnabl
 					setStateHeatersCoolers((String) oldValue, 0);
 				}
 
-			} else if (propertyName.equals(Thermometer.THERMOMETER_CURRENT_TEMPERATURE)) {
-				if (PERIODIC_RUNNABLE_OK) {
-					if (averageTemperature(
-							(String) temperatureSensor.getPropertyValue(LOCATION_PROPERTY_NAME)) >= ABSOLUTE_ZERO)
-						setStateHeatersCoolers((String) temperatureSensor.getPropertyValue(LOCATION_PROPERTY_NAME),
-								powerToSetFromTemperature(
-										averageTemperature(
-												(String) temperatureSensor.getPropertyValue(LOCATION_PROPERTY_NAME)),
-										this.temperatureAndRoomAssociation.get(
-												(String) temperatureSensor.getPropertyValue(LOCATION_PROPERTY_NAME))));
-
-
-					/*
-					 * PERIODIC_RUNNABLE_OK is set to false in order to wait for
-					 * the next mesure of thermometer
-					 */
-					PERIODIC_RUNNABLE_OK = false;
-				}
-
-			}
+			} 
 		}
 
 		/*
@@ -388,8 +362,6 @@ public class TemperatureRegulatorImpl implements DeviceListener, PeriodicRunnabl
 	@Override
 	public void run() {
 
-		PERIODIC_RUNNABLE_OK = true;
-
 		if (this.ANY_CHANGE_ON_TARGETED_TEMPERATURE_OF_LOCATION != null) {
 			if (averageTemperature(ANY_CHANGE_ON_TARGETED_TEMPERATURE_OF_LOCATION) >= ABSOLUTE_ZERO)
 				setStateHeatersCoolers(ANY_CHANGE_ON_TARGETED_TEMPERATURE_OF_LOCATION, powerToSetFromTemperature(
@@ -397,6 +369,18 @@ public class TemperatureRegulatorImpl implements DeviceListener, PeriodicRunnabl
 						this.temperatureAndRoomAssociation.get(ANY_CHANGE_ON_TARGETED_TEMPERATURE_OF_LOCATION)));
 			this.ANY_CHANGE_ON_TARGETED_TEMPERATURE_OF_LOCATION = null;
 		}
+
+		refreshTemperatureGoals();
+
+		for (Map.Entry mapentry : this.temperatureAndRoomAssociation.entrySet()) {
+
+			if (averageTemperature((String) mapentry.getKey()) >= ABSOLUTE_ZERO)
+				setStateHeatersCoolers((String) mapentry.getKey(), powerToSetFromTemperature(
+						averageTemperature((String) mapentry.getKey()), (double) mapentry.getValue()));
+
+			System.out.println("Room: " + mapentry.getKey() + " | temperature goal: " + mapentry.getValue());
+		}
+	
 
 	}
 
