@@ -21,21 +21,27 @@ public class TemperatureManagerImpl implements TemperatureManagerAdministration 
 	private static final double MIN_TEMPERATURE = 283;
 	private static final double MAX_TEMPERATURE = 303;
 
-	
 	public void temperatureIsTooHigh(String roomName) {
-		
-		if(Math.floor(temperatureManager.getTargetedTemperature(roomName)) > MIN_TEMPERATURE)
-			temperatureManager.setTargetedTemperature(roomName, temperatureManager.getTargetedTemperature(roomName) - 1);
-		else 
-			System.out.println("Min temperature reached in " + roomName);
+
+		if (!(temperatureManager.getTargetedTemperature(roomName) == 0)) {
+			if (Math.floor(temperatureManager.getTargetedTemperature(roomName)) > MIN_TEMPERATURE) {
+				temperatureManager.setTargetedTemperature(roomName,
+						temperatureManager.getTargetedTemperature(roomName) - 1);
+			} else
+				System.out.println("Min temperature reached in " + roomName);
+		}
+
 	}
 
 	public void temperatureIsTooLow(String roomName) {
-		
-		if(Math.ceil(temperatureManager.getTargetedTemperature(roomName)) < MAX_TEMPERATURE)
-			temperatureManager.setTargetedTemperature(roomName, temperatureManager.getTargetedTemperature(roomName) + 1);
-		else
-			System.out.println("Max temperature reached in " + roomName);
+
+		if (!(temperatureManager.getTargetedTemperature(roomName) == 0)) {
+			if (Math.ceil(temperatureManager.getTargetedTemperature(roomName)) < MAX_TEMPERATURE) {
+				temperatureManager.setTargetedTemperature(roomName,
+						temperatureManager.getTargetedTemperature(roomName) + 1);
+			} else
+				System.out.println("Max temperature reached in " + roomName);
+		}
 	}
 
 }

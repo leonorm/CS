@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
@@ -13,7 +14,6 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Unbind;
 import org.apache.felix.ipojo.annotations.Validate;
-import org.example.temperature.api.PeriodicRunnable;
 import org.example.temperature.api.TemperatureConfiguration;
 
 import fr.liglab.adele.icasa.device.DeviceListener;
@@ -21,10 +21,11 @@ import fr.liglab.adele.icasa.device.GenericDevice;
 import fr.liglab.adele.icasa.device.temperature.Cooler;
 import fr.liglab.adele.icasa.device.temperature.Heater;
 import fr.liglab.adele.icasa.device.temperature.Thermometer;
+import fr.liglab.adele.icasa.service.scheduler.PeriodicRunnable;
 
 @Component
 @Instantiate(name = "temperature.controller")
-@Provides(specifications = { TemperatureConfiguration.class })
+@Provides(specifications = { TemperatureConfiguration.class, PeriodicRunnable.class })
 @SuppressWarnings("rawtypes")
 public class TemperatureRegulatorImpl implements DeviceListener, PeriodicRunnable, TemperatureConfiguration {
 
@@ -56,9 +57,20 @@ public class TemperatureRegulatorImpl implements DeviceListener, PeriodicRunnabl
 	private static final double DEFAULT_TEMPERATURE = 293;
 
 	/**
-	 * Delay between two temperature measures
+	 * Definition of the period for the periodic runnable implementation
 	 */
-	private static final int DELAY = 1000;
+	private static final long PERIODIC_RUNNABLE_PERIOD = 10000;
+	private static final TimeUnit PERIODIC_RUNNABLE_UNIT = TimeUnit.SECONDS;
+
+	/**
+	 * Signal which validates that the periodic runnable period is passed
+	 */
+	private Boolean PERIODIC_RUNNABLE_OK = false;
+
+	/**
+	 * Is there a change of targeted temperature, so from setTargetedTemperature
+	 */
+	private String ANY_CHANGE_ON_TARGETED_TEMPERATURE_OF_LOCATION = null;
 
 	@Requires(id = "coolers", optional = true)
 	private Cooler[] coolers;
@@ -185,28 +197,32 @@ public class TemperatureRegulatorImpl implements DeviceListener, PeriodicRunnabl
 				}
 
 			} else if (propertyName.equals(Thermometer.THERMOMETER_CURRENT_TEMPERATURE)) {
-				try {
-					Thread.sleep(DELAY);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
+				if (PERIODIC_RUNNABLE_OK) {
+					if (averageTemperature(
+							(String) temperatureSensor.getPropertyValue(LOCATION_PROPERTY_NAME)) >= ABSOLUTE_ZERO)
+						setStateHeatersCoolers((String) temperatureSensor.getPropertyValue(LOCATION_PROPERTY_NAME),
+								powerToSetFromTemperature(
+										averageTemperature(
+												(String) temperatureSensor.getPropertyValue(LOCATION_PROPERTY_NAME)),
+										this.temperatureAndRoomAssociation.get(
+												(String) temperatureSensor.getPropertyValue(LOCATION_PROPERTY_NAME))));
+
+
+					/*
+					 * PERIODIC_RUNNABLE_OK is set to false in order to wait for
+					 * the next mesure of thermometer
+					 */
+					PERIODIC_RUNNABLE_OK = false;
 				}
 
-				if (averageTemperature(
-						(String) temperatureSensor.getPropertyValue(LOCATION_PROPERTY_NAME)) >= ABSOLUTE_ZERO)
-					setStateHeatersCoolers((String) temperatureSensor.getPropertyValue(LOCATION_PROPERTY_NAME),
-							powerToSetFromTemperature(
-									averageTemperature(
-											(String) temperatureSensor.getPropertyValue(LOCATION_PROPERTY_NAME)),
-									this.temperatureAndRoomAssociation
-											.get((String) temperatureSensor.getPropertyValue(LOCATION_PROPERTY_NAME))));
-				/*
-				 * System.out.println("temperature in  " + (String)
-				 * temperatureSensor.getPropertyValue(LOCATION_PROPERTY_NAME) +
-				 * " " + averageTemperature((String)
-				 * temperatureSensor.getPropertyValue(LOCATION_PROPERTY_NAME)));
-				 */
 			}
 		}
+
+		/*
+		 * For heaters and coolers, nothing to do, thermometers take care of
+		 * their behavior
+		 */
+
 	}
 
 	/**
@@ -326,9 +342,10 @@ public class TemperatureRegulatorImpl implements DeviceListener, PeriodicRunnabl
 			if (this.temperatureAndRoomAssociation.get(targetedRoom) != null) {
 
 				if ((this.temperatureAndRoomAssociation.get(targetedRoom)
-						- averageTemperature(targetedRoom)) < AUTHORIZED_ERROR)
+						- averageTemperature(targetedRoom)) < AUTHORIZED_ERROR) {
 					this.temperatureAndRoomAssociation.replace(targetedRoom, (double) temperature);
-				else
+					this.ANY_CHANGE_ON_TARGETED_TEMPERATURE_OF_LOCATION = targetedRoom;
+				} else
 					System.out.println("Previous temperature target still not reached");
 
 			} else
@@ -338,11 +355,13 @@ public class TemperatureRegulatorImpl implements DeviceListener, PeriodicRunnabl
 
 	public float getTargetedTemperature(String room) {
 
-		if (!room.equals(Thermometer.LOCATION_UNKNOWN))
-			return (this.temperatureAndRoomAssociation.get(room) != null)
-					? this.temperatureAndRoomAssociation.get(room).floatValue() : 0;
-		else
+		if (!room.equals(Thermometer.LOCATION_UNKNOWN) && (this.temperatureAndRoomAssociation.get(room) != null)) {
+
+			return this.temperatureAndRoomAssociation.get(room).floatValue();
+		} else {
+			System.out.println("Room unknown");
 			return 0;
+		}
 	}
 
 	/**
@@ -362,6 +381,39 @@ public class TemperatureRegulatorImpl implements DeviceListener, PeriodicRunnabl
 			}
 		}
 		return deviceLocation;
+	}
+
+	/*--------------------Periodic Runnable implementation-----------*/
+
+	@Override
+	public void run() {
+
+		PERIODIC_RUNNABLE_OK = true;
+
+		if (this.ANY_CHANGE_ON_TARGETED_TEMPERATURE_OF_LOCATION != null) {
+			if (averageTemperature(ANY_CHANGE_ON_TARGETED_TEMPERATURE_OF_LOCATION) >= ABSOLUTE_ZERO)
+				setStateHeatersCoolers(ANY_CHANGE_ON_TARGETED_TEMPERATURE_OF_LOCATION, powerToSetFromTemperature(
+						averageTemperature(ANY_CHANGE_ON_TARGETED_TEMPERATURE_OF_LOCATION),
+						this.temperatureAndRoomAssociation.get(ANY_CHANGE_ON_TARGETED_TEMPERATURE_OF_LOCATION)));
+			this.ANY_CHANGE_ON_TARGETED_TEMPERATURE_OF_LOCATION = null;
+		}
+
+	}
+
+	/**
+	 * Return the lenght of the period between each action of Periodic Runnable
+	 */
+	@Override
+	public long getPeriod() {
+		return PERIODIC_RUNNABLE_PERIOD;
+	}
+
+	/**
+	 * Return the unit of the period between each action of Periodic Runnable
+	 */
+	@Override
+	public TimeUnit getUnit() {
+		return PERIODIC_RUNNABLE_UNIT;
 	}
 
 }

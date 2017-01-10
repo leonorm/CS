@@ -36,6 +36,15 @@
 			<artifactId>icasa.temperature.api</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		
+		<!--Periodic Runnable bundle -->
+        <dependency>
+            <groupId>fr.liglab.adele.icasa</groupId>
+            <artifactId>technical.services.api</artifactId>
+            <version>1.2.7-SNAPSHOT</version>
+        </dependency>
+		
+		
 	</dependencies>
 
 	<!-- Ce qui va etre appelé dasn la phase de build du projet (en plus de 
