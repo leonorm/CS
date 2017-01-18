@@ -57,6 +57,9 @@
 	<module>icasa.temperature.regulator</module>
 	<module>icasa.temperature.manager</module>
 	<module>icasa.temperature.user.command</module>
+	<module>icasa.energy.goal.api</module>
+	<module>icasa.energy.goal.manager</module>
+	<module>icasa.energy.goal.user.command</module>
     </modules>
 
     <!-- Définis une configuration et une version par défaut aux différentes dépendances utilisées-->

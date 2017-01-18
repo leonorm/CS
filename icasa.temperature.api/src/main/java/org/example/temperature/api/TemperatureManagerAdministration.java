@@ -23,4 +23,7 @@ public interface TemperatureManagerAdministration {
      *            the room where the temperature should be reconfigured
      */
     public void temperatureIsTooLow(String roomName);
+    
+    public double getTemperature(String roomName);
+    
 }

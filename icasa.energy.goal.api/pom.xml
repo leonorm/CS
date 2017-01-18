@@ -12,10 +12,9 @@
 
     <!-- DESCRIPTION OBLIGATOIRE DE L'ARTIFACT-->
     <!-- Le groupeid et la version sont hérité du parent -->
-    <artifactId>icasa.light.user.command</artifactId>
-	
-	<packaging>bundle</packaging>
-	
+    <artifactId>icasa.energy.goal.api</artifactId>
+    <packaging>bundle</packaging>
+
     <dependencies>
         <!--iPOJO dep -->
         <dependency>
@@ -32,25 +31,21 @@
             <groupId>fr.liglab.adele.icasa</groupId>
             <artifactId>context.api</artifactId>
         </dependency>
-
-        <!-- Additional iCasa dep due to the use of the @Command annotation -->
-        <dependency>
-            <groupId>fr.liglab.adele.icasa</groupId>
-            <artifactId>command.handler</artifactId>
-            <version>${icasa.version}</version>
-        </dependency>
-
-
-        <!-- Dépendance liée à l'utilisation des services, il faut importer leurs classes pour pouvoir les utiliser -->
         <dependency>
         	<groupId>fr.liglab.adele.icasa.teaching</groupId>
-        	<artifactId>icasa.energy.goal.api</artifactId>
+        	<artifactId>icasa.light.api</artifactId>
+        	<version>0.1-SNAPSHOT</version>
+        	<type>bundle</type>
+        </dependency>
+        <dependency>
+        	<groupId>fr.liglab.adele.icasa.teaching</groupId>
+        	<artifactId>icasa.temperature.api</artifactId>
         	<version>0.1-SNAPSHOT</version>
         	<type>bundle</type>
         </dependency>
     </dependencies>
 
-    <!-- Ce qui va etre appelé dans la phase de build du projet (en plus des étapes par défaut de maven) -->
+    <!-- Ce qui va etre appelé dasn la phase de build du projet (en plus de ceux définit par défaut dans maven) -->
     <build>
         <plugins>
             <plugin>
@@ -58,6 +53,9 @@
                 <artifactId>maven-bundle-plugin</artifactId>
                 <configuration>
                     <instructions>
+                        <Export-Package>
+                            org.example.energy.goal.api
+                        </Export-Package>
                     </instructions>
                 </configuration>
             </plugin>

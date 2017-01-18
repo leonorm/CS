@@ -44,4 +44,8 @@ public class TemperatureManagerImpl implements TemperatureManagerAdministration 
 		}
 	}
 
+	
+	public double getTemperature(String roomName){
+		return temperatureManager.getTargetedTemperature(roomName);
+	}
 }

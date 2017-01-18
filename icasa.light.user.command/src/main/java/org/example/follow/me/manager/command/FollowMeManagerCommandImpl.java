@@ -5,8 +5,8 @@ import java.rmi.UnexpectedException;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Requires;
+import org.example.energy.goal.api.EnergyGoalManagerAdministration;
 import org.example.follow.me.api.EnergyGoal;
-import org.example.follow.me.api.FollowMeAdministration;
 import org.example.follow.me.api.IlluminanceGoal;
 
 import fr.liglab.adele.icasa.command.handler.Command;
@@ -23,7 +23,7 @@ public class FollowMeManagerCommandImpl {
  
     // Declare a dependency to a FollowMeAdministration service
     @Requires
-    private FollowMeAdministration m_administrationService;
+    private EnergyGoalManagerAdministration m_administrationService;
  
  
     /**
